@@ -16,6 +16,7 @@
 
 package com.io7m.scontext;
 
+import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLContext;
 import com.jogamp.opengl.GLDrawableFactory;
@@ -23,18 +24,19 @@ import com.jogamp.opengl.GLOffscreenAutoDrawable;
 import com.jogamp.opengl.GLProfile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.valid4j.Assertive;
 
 import java.util.Objects;
 
-public final class CreateSharedContext0
+public final class CreateSharedContext1
 {
   private static final Logger LOG;
 
   static {
-    LOG = LoggerFactory.getLogger(CreateSharedContext0.class);
+    LOG = LoggerFactory.getLogger(CreateSharedContext1.class);
   }
 
-  private CreateSharedContext0()
+  private CreateSharedContext1()
   {
     throw new AssertionError("Unreachable code!");
   }
@@ -42,23 +44,24 @@ public final class CreateSharedContext0
   public static void main(
     final String[] args)
   {
-    CreateSharedContext0.LOG.debug("Fetching GL3 profile");
+    CreateSharedContext1.LOG.debug("Fetching GL3 profile");
 
     final GLProfile pro = GLProfile.get(GLProfile.GL3);
     final GLCapabilities caps = new GLCapabilities(pro);
     caps.setFBO(true);
 
-    CreateSharedContext0.LOG.debug("Creating offscreen drawable factory");
+    CreateSharedContext1.LOG.debug("Creating offscreen drawable factory");
     final GLDrawableFactory draw_fact = GLDrawableFactory.getFactory(pro);
 
-    CreateSharedContext0.LOG.debug("Creating master context");
-    final GLOffscreenAutoDrawable master =
-      draw_fact.createOffscreenAutoDrawable(null, caps, null, 640, 480);
+    CreateSharedContext1.LOG.debug("Creating master context");
+    final boolean createNewDevice = true;
+    final GLAutoDrawable master =
+      draw_fact.createDummyAutoDrawable(null, createNewDevice, caps, null);
     master.display();
-    final GLContext master_ctx =
-      Objects.requireNonNull(master.getContext(), "Master context");
+    final GLContext master_ctx = Objects.requireNonNull(
+      master.getContext(), "Master context");
 
-    CreateSharedContext0.LOG.debug("Creating slave context");
+    CreateSharedContext1.LOG.debug("Creating slave context");
     final GLOffscreenAutoDrawable slave =
       draw_fact.createOffscreenAutoDrawable(null, caps, null, 640, 480);
     slave.setSharedAutoDrawable(master);
@@ -66,14 +69,11 @@ public final class CreateSharedContext0
     final GLContext slave_ctx = Objects.requireNonNull(
       slave.getContext(), "Slave context");
 
-    CreateSharedContext0.LOG.debug(
-      "Slave is shared with master: {}",
-      slave_ctx.getCreatedShares().contains(master_ctx));
-    CreateSharedContext0.LOG.debug(
-      "Master is shared with slave: {}",
-      master_ctx.getCreatedShares().contains(slave_ctx));
+    CreateSharedContext1.LOG.debug("Checking that contexts are shared");
+    Assertive.require(slave_ctx.getCreatedShares().contains(master_ctx));
+    Assertive.require(master_ctx.getCreatedShares().contains(slave_ctx));
 
-    CreateSharedContext0.LOG.debug("Destroying contexts");
+    CreateSharedContext1.LOG.debug("Destroying contexts");
     master.destroy();
     slave.destroy();
   }
