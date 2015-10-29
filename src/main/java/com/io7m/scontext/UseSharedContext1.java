@@ -109,7 +109,7 @@ public final class UseSharedContext1
 
       final ByteBuffer data = ByteBuffer.allocateDirect(100);
 
-      final GL3 g = new DebugGL3(master_ctx.getGL().getGL3());
+      final GL3 g = new DebugGL3(slave_ctx.getGL().getGL3());
       g.glBindBuffer(GL.GL_ARRAY_BUFFER, buffer_id);
       g.glBufferSubData(GL.GL_ARRAY_BUFFER, 0L, 100L, data);
       g.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
